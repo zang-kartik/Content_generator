@@ -20,7 +20,7 @@ def createUserIndex(modalId,openkey):
     """
     load_dotenv(".env")
     try:
-        openai.api_key = openkey #Import your OpenAI key to set Embeddings for storing
+        openai.api_key = openkey#Import your OpenAI key to set Embeddings for storing
 
         openai_embedding = embedding_functions.OpenAIEmbeddingFunction(model_name = "text-embedding-ada-002")
 

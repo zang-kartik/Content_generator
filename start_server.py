@@ -46,6 +46,9 @@ def uploadParams():
 
     load_dotenv(".env") #Loading .env file for environmental variables
 
+    if request.headers['AuthKey'] != 'ajsjjsjjsjakflalsaldksdan':
+        return jsonify({"status": "failure", "error": "Invaild Auth key"})
+
     try:
         data = request.get_json()
         progress = getFile(modalId=data["modalId"],s3Path=data["s3Path"])    
@@ -54,7 +57,7 @@ def uploadParams():
             res = createUserIndex(modalId=data["modalId"],openkey=data["openkey"])
 
         else:
-            res = {"error" : progress}
+            res = {"error" : progress,"status":"success"}
             return jsonify(res)
 
 
@@ -62,15 +65,18 @@ def uploadParams():
             res = database_utils.createUser(modalId=data["modalId"], title=data["title"],contentType=data["contentType"],s3Path=data["s3Path"], guidelines=data["guidelines"],responseSize=data["responseSize"],description=data["description"],openkey=data["openkey"],paid=1)
 
         else:
-            res = {"error" : res}
+            res = {"error" : res,"status":"failure"}
             return jsonify(res)
         
 
     except Exception as e:
-        res = {"error":str(e)}
+        res = {
+            "error":str(e),
+            "status":"failure"
+        }
         return jsonify(res)
     
-    res = f'<iframe src="https://your-content-generator-url.com?key={data["modalId"]}" frameborder="0" width="300" height="400"></iframe>"'
+    res = f'<iframe src="http://{data["ip"]}?key={data["modalId"]}" frameborder="0" width="300" height="400"></iframe>"'
     res = str(res)
     return res
 
@@ -89,6 +95,8 @@ def handleRequest():
     - json object
     """
 
+    if request.headers['AuthKey'] != 'ajsjjsjjsjakflalsaldksdan':
+        return jsonify({"status": "failure", "error": "Invaild Auth key"})
 
     try:
         data = request.get_json() 
@@ -96,12 +104,16 @@ def handleRequest():
         print(ans)
         
         res = {
-            "msg":str(ans)
+            "msg":str(ans),
+            "status":"success"
         }
 
 
     except Exception as e:
-        res = {"error" : str(e)}
+        res = {
+            "error" : str(e),
+            "status":"failure"
+        }
            
     return jsonify(res)
 
@@ -120,6 +132,9 @@ def checkStatus():
     - json object
     """
 
+    if request.headers['AuthKey'] != 'ajsjjsjjsjakflalsaldksdan':
+        return jsonify({"status": "failure", "error": "Invaild Auth key"})
+
     try:
         data = request.get_json()
         res = database_utils.getContentType(modal_id=data["modalId"])
@@ -127,12 +142,15 @@ def checkStatus():
         # if res == "tuple index out of range":
         #     return jsonify({"msg":"Invalid Key!"})
         res = {
-            "response" : str(res)
+            "paid" : str(res[0]),
+            "contentType": str(res[1]),
+            "status":"success"
         }
 
     except Exception as e:
         res = {
-            "response" : str(res)
+            "response" : str(res),
+            "status":"failure"
         }
 
     return jsonify(res)
@@ -140,14 +158,18 @@ def checkStatus():
 @app.route("/api/remove_index",methods=["GET","POST"])
 @cross_origin()
 def remove_index():
+
+    if request.headers['AuthKey'] != 'ajsjjsjjsjakflalsaldksdan':
+        return jsonify({"status": "failure", "error": "Invaild Auth key"})
+
     try:
         client = chromadb.PersistentClient(path="/home/ubuntu/package-chatbot/chroma")
         data = request.get_json()
         client.delete_collection(data["modalId"])
-        res = {"response":"done"}
+        res = {"response":"done","status":"success"}
 
     except Exception as e:
-        res = {"response":str(e)}
+        res = {"response":str(e),"status":"failure"}
         return jsonify(res)
     return jsonify(res)
 
